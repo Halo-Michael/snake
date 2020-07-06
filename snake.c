@@ -251,21 +251,21 @@ int main( int argc, char *argv[] )
         return 1;
     }
 
+    g_height -= 4;
+
     if ( argc == 3 ) {
         if ( is_number( argv[1] ) && is_number( argv[2] ) ) {
             int width = atoi( argv[1] ), height = atoi( argv[2] );
             if ( width < 10 )
                 width = 10;
-            if ( height < 14 )
-                height = 14;
+            if ( height < 10 )
+                height = 10;
             if ( width < g_width )
                 g_width = width;
             if ( height < g_height )
                 g_height = height;
         }
     }
-
-    g_height -= 4;
 
     // Set up the 2D array of all spaces
     spaces = (bool*) malloc( sizeof( bool ) * g_height * g_width );
