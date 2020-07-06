@@ -86,6 +86,14 @@ void snake_draw_board( )
     snake_write_text( g_height+1, 2, "Score:" );
 }
 
+// Resets the terminal window and clears up the mem
+void snake_game_over( )
+{
+    endwin();
+    printf("Final score: %d\n", g_score);
+    exit(0);
+}
+
 // Is the current position in bounds?
 bool snake_in_bounds( pos position )
 {
@@ -128,10 +136,8 @@ void snake_move_player( pos head )
 
     // Check if we ran into ourself
     int idx = snake_cooridinate_to_index( head );
-    if( spaces[idx] ) {
-        endwin();
-        exit(0);
-    }
+    if( spaces[idx] )
+        snake_game_over( );
     spaces[idx] = true; // Mark the space as occupied
     enqueue( head );
     g_score += 10;
@@ -279,10 +285,8 @@ int main( int argc, char *argv[] )
     while( 1 )
     {
         int in = getch( );
-        if( in == 0x1b ) {
-            endwin();
-            return 0;
-        }
+        if( in == 0x1b )
+            snake_game_over( );
         if( in != ERR && valid( in, key ) )
             key = in;
         switch( key )
@@ -317,10 +321,8 @@ int main( int argc, char *argv[] )
                 break;
 
         }
-        if( !snake_in_bounds( head ) ) {
-            endwin();
-            return 0;
-        }
+        if( !snake_in_bounds( head ) )
+            snake_game_over( );
         else
             snake_move_player( head );
     }
