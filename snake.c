@@ -1,12 +1,5 @@
-#include <stdlib.h>
-#include <curses.h>
-#include <signal.h>
-#include <sys/select.h>
-#include <stdio.h>
-#include <time.h>
-
-#define DESIRED_WIDTH  70
-#define DESIRED_HEIGHT 25
+#include <CoreFoundation/CoreFoundation.h>
+#include "curses.h"
 
 WINDOW * g_mainwin;
 int g_oldcur, g_score = 0, g_width, g_height;
@@ -93,20 +86,6 @@ void snake_draw_board( )
     snake_write_text( g_height+1, 2, "Score:" );
 }
 
-// Resets the terminal window and clears up the mem
-void snake_game_over( )
-{
-    free( spaces );
-    while( front )
-    {
-        node *n = front;
-        front = front->next;
-        free( n );
-    }
-    endwin();
-    exit(0);
-}
-
 // Is the current position in bounds?
 bool snake_in_bounds( pos position )
 {
@@ -146,15 +125,17 @@ void snake_draw_fruit( )
 void snake_move_player( pos head )
 {
     attrset( COLOR_PAIR( 1 ) ) ;
-    
+
     // Check if we ran into ourself
     int idx = snake_cooridinate_to_index( head );
-    if( spaces[idx] )
-        snake_game_over( );
+    if( spaces[idx] ) {
+        endwin();
+        exit(0);
+    }
     spaces[idx] = true; // Mark the space as occupied
     enqueue( head );
     g_score += 10;
-    
+
     // Check if we're eating the fruit
     if( head.x == fruit.x && head.y == fruit.y )
     {
@@ -168,16 +149,36 @@ void snake_move_player( pos head )
         spaces[snake_cooridinate_to_index( *tail )] = false;
         snake_write_text( tail->y, tail->x, " " );
     }
-    
+
     // Draw the new head 
     snake_write_text( head.y, head.x, "S" );
-    
+
     // Update scoreboard
     char buffer[25];
     sprintf( buffer, "%d", g_score );
     attrset( COLOR_PAIR( 2 ) );
     snake_write_text( g_height+1, 9, buffer );
 
+}
+
+bool is_number(const char *num) {
+    if (strcmp(num, "0") == 0) {
+        return true;
+    }
+    const char* p = num;
+    if (*p < '1' || *p > '9') {
+        return false;
+    } else {
+        p++;
+    }
+    while (*p) {
+        if(*p < '0' || *p > '9') {
+            return false;
+        } else {
+            p++;
+        }
+    }
+    return true;
 }
 
 bool valid( int in, int key )
@@ -227,7 +228,7 @@ int main( int argc, char *argv[] )
         perror( "error initialising ncurses" );
         exit( EXIT_FAILURE );
     }
-    
+
     // Set up
     srand( time( NULL ) );
     noecho( );
@@ -244,10 +245,28 @@ int main( int argc, char *argv[] )
     init_pair( 6, COLOR_MAGENTA, COLOR_BLACK );
     init_pair( 7, COLOR_WHITE,   COLOR_BLACK );
     getmaxyx( g_mainwin, g_height, g_width );
-    
-    g_width  = g_width  < DESIRED_WIDTH  ? g_width  : DESIRED_WIDTH;
-    g_height = g_height < DESIRED_HEIGHT ? g_height : DESIRED_HEIGHT; 
-    
+
+    if ( g_width < 10 || g_height < 14 ) {
+        printf("Terminal screen too small.\n");
+        return 1;
+    }
+
+    if ( argc == 3 ) {
+        if ( is_number( argv[1] ) && is_number( argv[2] ) ) {
+            int width = atoi( argv[1] ), height = atoi( argv[2] );
+            if ( width < 10 )
+                width = 10;
+            if ( height < 14 )
+                height = 14;
+            if ( width < g_width )
+                g_width = width;
+            if ( height < g_height )
+                g_height = height;
+        }
+    }
+
+    g_height -= 4;
+
     // Set up the 2D array of all spaces
     spaces = (bool*) malloc( sizeof( bool ) * g_height * g_width );
 
@@ -255,13 +274,14 @@ int main( int argc, char *argv[] )
     snake_draw_fruit( );
     pos head = { 5,5 };
     enqueue( head );
-    
+
     // Event loop
     while( 1 )
     {
         int in = getch( );
         if( in == 0x1b ) {
-            snake_game_over( );
+            endwin();
+            return 0;
         }
         if( in != ERR && valid( in, key ) )
             key = in;
@@ -297,11 +317,11 @@ int main( int argc, char *argv[] )
                 break;
 
         }
-        if( !snake_in_bounds( head ) )    
-            snake_game_over( );
+        if( !snake_in_bounds( head ) ) {
+            endwin();
+            return 0;
+        }
         else
             snake_move_player( head );
     }
-    snake_game_over( );
 }
-
