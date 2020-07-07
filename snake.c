@@ -97,8 +97,6 @@ void snake_game_over( )
 }
 
 // Is the current position in bounds?
-// i = 1: snake
-// i = 2: fruit
 bool snake_in_bounds( pos position )
 {
     return position.y < g_height - 1 && position.y > 0 && position.x < g_width - 1 && position.x > 0;
