@@ -134,7 +134,7 @@ void snake_draw_fruit( )
 // Handles moving the snake for each iteration
 void snake_move_player( pos head )
 {
-    attrset( COLOR_PAIR( 1 ) ) ;
+    attrset( COLOR_PAIR( 1 ) );
 
     // Check if we ran into ourself
     int idx = snake_cooridinate_to_index( head );
@@ -155,12 +155,18 @@ void snake_move_player( pos head )
         // Handle the tail
         pos *tail = dequeue( );
         spaces[snake_cooridinate_to_index( *tail )] = false;
-        if ( tail->y == 0 || tail->y == (g_height-1) || tail->x == 0 || tail->x == (g_width-1) ) {
+        if ( ( (tail->y == 0 || tail->y == (g_height-1) ) && 0 <= tail->x && tail->x < g_width ) || ( (tail->x == 0 || tail->x == (g_width-1) ) && 0 <= tail->y && tail->y < g_height ) ) {
             attrset( COLOR_PAIR( 0 ) );
             snake_write_text( tail->y, tail->x, "X" );
-            attrset( COLOR_PAIR( 1 ) ) ;
-        }
-        else
+            attrset( COLOR_PAIR( 1 ) );
+        } else if ( tail->y == g_height+1 &&  2 <= tail->x && tail->x <= 7 ) {
+            char scores[7] = "Score:";
+            char score[2];
+            sprintf( score, "%c", scores[(tail->x)-2] );
+            attrset( COLOR_PAIR( 0 ) );
+            snake_write_text( tail->y, tail->x, score );
+            attrset( COLOR_PAIR( 1 ) );
+        } else
             snake_write_text( tail->y, tail->x, " " );
     }
 
@@ -172,7 +178,6 @@ void snake_move_player( pos head )
     sprintf( buffer, "%d", g_score );
     attrset( COLOR_PAIR( 2 ) );
     snake_write_text( g_height+1, 9, buffer );
-
 }
 
 bool is_number( const char *num )
