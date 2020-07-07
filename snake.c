@@ -1,5 +1,9 @@
-#include <CoreFoundation/CoreFoundation.h>
-#include "curses.h"
+#include <stdlib.h>
+#include <curses.h>
+#include <signal.h>
+#include <sys/select.h>
+#include <stdio.h>
+#include <time.h>
 
 WINDOW * g_mainwin;
 int g_oldcur, g_score = 0, g_width, g_height;
