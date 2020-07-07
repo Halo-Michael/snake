@@ -331,7 +331,7 @@ int main( int argc, char *argv[] )
                 break;
 
         }
-        if( !snake_in_bounds( head ) && !gold_finger )
+        if( !gold_finger && !snake_in_bounds( head ) )
             snake_game_over( );
         else
             snake_move_player( head );
