@@ -99,12 +99,9 @@ void snake_game_over( )
 // Is the current position in bounds?
 // i = 1: snake
 // i = 2: fruit
-bool snake_in_bounds( int i, pos position )
+bool snake_in_bounds( pos position )
 {
-    if ( !gold_finger || i == 2 )
-        return position.y < g_height - 1 && position.y > 0 && position.x < g_width - 1 && position.x > 0;
-    else
-        return true;
+    return position.y < g_height - 1 && position.y > 0 && position.x < g_width - 1 && position.x > 0;
 }
 
 // 2D matrix of possible positions implemented with a 1D array. This maps
@@ -132,7 +129,7 @@ void snake_draw_fruit( )
         idx = rand( ) % ( g_width * g_height );
         fruit = snake_index_to_coordinate( idx );
     }
-    while( spaces[idx] || !snake_in_bounds( 2, fruit ) );
+    while( spaces[idx] || !snake_in_bounds( fruit ) );
     snake_write_text( fruit.y, fruit.x, "F" );
 }
 
@@ -336,7 +333,7 @@ int main( int argc, char *argv[] )
                 break;
 
         }
-        if( !snake_in_bounds( 1, head ) )
+        if( !snake_in_bounds( head ) && !gold_finger )
             snake_game_over( );
         else
             snake_move_player( head );
