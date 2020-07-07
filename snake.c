@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <curses.h>
 #include <signal.h>
 #include <sys/select.h>
