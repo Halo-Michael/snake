@@ -1,4 +1,4 @@
-[![Run on Repl.it](https://repl.it/badge/github/mnisjk/snake)](https://repl.it/github/mnisjk/snake)
+[![Run on Repl.it](https://repl.it/badge/github/Halo-Michael/snake)](https://repl.it/github/Halo-Michael/snake)
 
 snake
 =====
@@ -7,7 +7,7 @@ A simple terminal based snake game written in c with ncurses. Uses vim style 'hj
 
 ### Screenshot
 
-![screenshot](https://raw.githubusercontent.com/mnisjk/snake/master/screenshot.png)
+![screenshot](https://raw.githubusercontent.com/Halo-Michael/snake/master/screenshot.png)
 
 ### How to compile & run
 
