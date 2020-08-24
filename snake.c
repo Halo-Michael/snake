@@ -17,7 +17,7 @@ typedef struct {
 pos fruit;
 
 // 2D array of all spaces on the board.
-bool *spaces;
+int *spaces;
 
 // --------------------------------------------------------------------------
 // Queue stuff
@@ -48,21 +48,21 @@ pos* dequeue( )
 // Queues a position at the back
 void enqueue( pos position )
 {
-   pos *newpos   = (pos*)  malloc( sizeof( position ) );
-   node *newnode = (node*) malloc( sizeof( node ) );
+    pos *newpos   = (pos*)  malloc( sizeof( position ) );
+    node *newnode = (node*) malloc( sizeof( node ) );
 
-   newpos->x = position.x;
-   newpos->y = position.y;
-   newnode->position = newpos;
+    newpos->x = position.x;
+    newpos->y = position.y;
+    newnode->position = newpos;
 
-   if( front == NULL && back == NULL )
-       front = back = newnode;
-   else
-   {
-       back->next = newnode;
-       newnode->prev = back;
-       back = newnode;
-   }
+    if( front == NULL && back == NULL )
+        front = back = newnode;
+    else
+    {
+        back->next = newnode;
+        newnode->prev = back;
+        back = newnode;
+    }
 }
 // --------------------------------------------------------------------------
 // End Queue stuff
@@ -79,13 +79,12 @@ void snake_write_text( int y, int x, char* str )
 // Draws the borders
 void snake_draw_board( )
 {
-    int i;
-    for( i=0; i<g_height; i++ )
+    for( int i = 0; i<g_height; i++ )
     {
         snake_write_text( i, 0,         "X" );
         snake_write_text( i, g_width-1, "X" );
     }
-    for( i=1; i<g_width-1; i++ )
+    for( int i = 1; i<g_width-1; i++ )
     {
         snake_write_text( 0, i,          "X" );
         snake_write_text( g_height-1, i, "X" );
@@ -96,6 +95,7 @@ void snake_draw_board( )
 // Resets the terminal window and exit
 void snake_game_over( )
 {
+    free( spaces );
     endwin();
     printf("Final score: %d\n", g_score);
     exit(0);
@@ -132,7 +132,7 @@ void snake_draw_fruit( )
         idx = rand( ) % ( g_width * g_height );
         fruit = snake_index_to_coordinate( idx );
     }
-    while( spaces[idx] || !snake_in_bounds( fruit ) );
+    while( spaces[idx] != 0 || !snake_in_bounds( fruit ) );
     snake_write_text( fruit.y, fruit.x, "F" );
 }
 
@@ -143,9 +143,9 @@ void snake_move_player( pos head )
 
     // Check if we ran into ourself
     int idx = snake_cooridinate_to_index( head );
-    if( !gold_finger && spaces[idx] )
+    if( !gold_finger && spaces[idx] != 0 )
         snake_game_over( );
-    spaces[idx] = true; // Mark the space as occupied
+    spaces[idx] ++; // Mark the space as occupied
     enqueue( head );
     g_score += 10;
 
@@ -159,19 +159,23 @@ void snake_move_player( pos head )
     {
         // Handle the tail
         pos *tail = dequeue( );
-        spaces[snake_cooridinate_to_index( *tail )] = false;
-        if ( ( (tail->y == 0 || tail->y == (g_height-1) ) && 0 <= tail->x && tail->x < g_width ) || ( (tail->x == 0 || tail->x == (g_width-1) ) && 0 <= tail->y && tail->y < g_height ) ) {
+        spaces[snake_cooridinate_to_index( *tail )] --;
+        if ( ( (tail->y == 0 || tail->y == (g_height-1) ) && 0 <= tail->x && tail->x < g_width ) || ( (tail->x == 0 || tail->x == (g_width-1) ) && 0 <= tail->y && tail->y < g_height ) )
+        {
             attrset( COLOR_PAIR( 0 ) );
             snake_write_text( tail->y, tail->x, "X" );
             attrset( COLOR_PAIR( 1 ) );
-        } else if ( tail->y == g_height+1 &&  2 <= tail->x && tail->x <= 7 ) {
+        }
+        else if ( tail->y == g_height+1 &&  2 <= tail->x && tail->x <= 7 )
+        {
             char scores[7] = "Score:";
             char score[2];
             sprintf( score, "%c", scores[(tail->x)-2] );
             attrset( COLOR_PAIR( 0 ) );
             snake_write_text( tail->y, tail->x, score );
             attrset( COLOR_PAIR( 1 ) );
-        } else
+        }
+        else if ( spaces[snake_cooridinate_to_index( *tail )] == 0 )
             snake_write_text( tail->y, tail->x, " " );
     }
 
@@ -246,7 +250,8 @@ bool valid( int in, int key )
 int main( int argc, char *argv[] )
 {
     int key = KEY_RIGHT;
-    if( ( g_mainwin = initscr() ) == NULL ) {
+    if( ( g_mainwin = initscr() ) == NULL )
+    {
         perror( "error initialising ncurses" );
         return( EXIT_FAILURE );
     }
@@ -268,7 +273,8 @@ int main( int argc, char *argv[] )
     init_pair( 7, COLOR_WHITE,   COLOR_BLACK );
     getmaxyx( g_mainwin, g_height, g_width );
 
-    if ( g_width < 10 || g_height < 14 ) {
+    if ( g_width < 10 || g_height < 14 )
+    {
         printf("Terminal screen too small.\n");
         return 1;
     }
@@ -290,15 +296,17 @@ int main( int argc, char *argv[] )
     }
 
     // Set up the 2D array of all spaces
-    spaces = (bool*) malloc( sizeof( bool ) * g_height * g_width );
+    spaces = (int*) malloc( sizeof( int ) * g_height * g_width );
+    memset(spaces, 0, sizeof( int ) * g_height * g_width);
 
     snake_draw_board( );
     snake_draw_fruit( );
     pos head = { 5,5 };
+    spaces[snake_cooridinate_to_index( head )] = 1;
     enqueue( head );
 
     // Event loop
-    while( 1 )
+    for( ;; )
     {
         int in = getch( );
         // Press the esc key to exit the game
