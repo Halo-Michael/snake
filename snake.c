@@ -38,11 +38,11 @@ pos* peek( )
 }
 
 // Returns the position at the front and dequeues
-pos* dequeue( )
+node* dequeue( )
 {
     node *oldfront = front;
     front = front->next;
-    return oldfront->position;
+    return oldfront;
 }
 
 // Queues a position at the back
@@ -158,7 +158,8 @@ void snake_move_player( pos head )
     else
     {
         // Handle the tail
-        pos *tail = dequeue( );
+        node *tail_node = dequeue( );
+        pos *tail = tail_node->position;
         spaces[snake_cooridinate_to_index( *tail )] --;
         if ( ( (tail->y == 0 || tail->y == (g_height-1) ) && 0 <= tail->x && tail->x < g_width ) || ( (tail->x == 0 || tail->x == (g_width-1) ) && 0 <= tail->y && tail->y < g_height ) )
         {
@@ -177,6 +178,7 @@ void snake_move_player( pos head )
         }
         else if ( spaces[snake_cooridinate_to_index( *tail )] == 0 )
             snake_write_text( tail->y, tail->x, " " );
+        free( tail_node );
     }
 
     // Draw the new head
@@ -273,6 +275,10 @@ int main( int argc, char *argv[] )
     init_pair( 7, COLOR_WHITE,   COLOR_BLACK );
     getmaxyx( g_mainwin, g_height, g_width );
 
+    // Set up the 2D array of all spaces
+    spaces = (int*) malloc( sizeof( int ) * g_height * g_width );
+    memset(spaces, 0, sizeof( int ) * g_height * g_width);
+
     if ( g_width < 10 || g_height < 14 )
     {
         printf("Terminal screen too small.\n");
@@ -294,10 +300,6 @@ int main( int argc, char *argv[] )
                 g_height = height;
         }
     }
-
-    // Set up the 2D array of all spaces
-    spaces = (int*) malloc( sizeof( int ) * g_height * g_width );
-    memset(spaces, 0, sizeof( int ) * g_height * g_width);
 
     snake_draw_board( );
     snake_draw_fruit( );
